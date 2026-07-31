@@ -1,40 +1,257 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Widget Notion</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-<meta charset="UTF-8">
+    body {
+      background-color: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    /* Card Widget Outer Box */
+    .player-card {
+      background: #fdfbfd;
+      width: 320px;
+      padding: 20px 24px 18px 24px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(216, 180, 254, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid #f3e8ff;
+    }
 
-<title>Cozy Music</title>
+    /* Hidden YouTube Player */
+    #yt-player {
+      display: none;
+    }
 
-<link rel="stylesheet" href="style.css">
+    /* Progress Bar / Slider */
+    .progress-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
 
+    .seek-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 10px;
+      background: #e9d5ff; /* Soft purple track */
+      outline: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    /* Pink/Purple Thumb Controls */
+    .seek-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ec4899; /* Vibrant Pink */
+      box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.2s ease;
+    }
+
+    .seek-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      background: #c084fc; /* Lavender Purple */
+    }
+
+    /* Playback Controls Container */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #a855f7; /* Aesthetic Purple Icon */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, color 0.2s ease;
+    }
+
+    .btn:hover {
+      color: #ec4899; /* Pink on hover */
+      transform: scale(1.15);
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-play {
+      color: #db2777; /* Deep Pink */
+    }
+
+    svg {
+      fill: currentColor;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="card">
+  <div class="player-card">
+    <!-- Seek Bar -->
+    <div class="progress-container">
+      <input type="range" id="seek-bar" class="seek-slider" value="0" min="0" max="100">
+    </div>
 
-<h2>☕ Cozy Music</h2>
+    <!-- Playback Buttons -->
+    <div class="controls">
+      <!-- Rewind / Previous -->
+      <button class="btn" id="prev-btn" title="Mundur 5 Detik">
+        <svg width="22" height="22" viewBox="0 0 24 24">
+          <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/>
+        </svg>
+      </button>
 
-<h3>love me not</h3>
+      <!-- Play / Pause -->
+      <button class="btn btn-play" id="play-btn" title="Play / Pause">
+        <svg id="play-icon" width="26" height="26" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        <svg id="pause-icon" width="26" height="26" viewBox="0 0 24 24" style="display: none;">
+          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+        </svg>
+      </button>
 
-<p>keshi</p>
+      <!-- Fast Forward / Next -->
+      <button class="btn" id="next-btn" title="Maju 5 Detik">
+        <svg width="22" height="22" viewBox="0 0 24 24">
+          <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 
-<button id="playButton">
-▶ Play
-</button>
+  <!-- YouTube IFrame API Hidden Container -->
+  <div id="yt-player"></div>
 
-<div id="player"></div>
+  <script>
+    // YouTube Video ID untuk "Love Me Not" - Ravyn Lenae
+    const videoId = 'cswfR85D7jM';
 
-</div>
+    let player;
+    let isPlaying = false;
+    let updateInterval;
 
-<script src="https://www.youtube.com/iframe_api"></script>
+    // Load YouTube IFrame API
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-<script src="script.js"></script>
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('yt-player', {
+        height: '0',
+        width: '0',
+        videoId: videoId,
+        playerVars: {
+          'autoplay': 0,
+          'controls': 0,
+          'loop': 1,
+          'playlist': videoId
+        },
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
 
+    const playBtn = document.getElementById('play-btn');
+    const playIcon = document.getElementById('play-icon');
+    const pauseIcon = document.getElementById('pause-icon');
+    const seekBar = document.getElementById('seek-bar');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    // Toggle Play/Pause
+    playBtn.addEventListener('click', () => {
+      if (!player) return;
+      if (isPlaying) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
+    });
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.PLAYING) {
+        isPlaying = true;
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'block';
+        startProgressBar();
+      } else {
+        isPlaying = false;
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+        clearInterval(updateInterval);
+      }
+    }
+
+    // Update Progress Slider
+    function startProgressBar() {
+      clearInterval(updateInterval);
+      updateInterval = setInterval(() => {
+        if (player && player.getDuration) {
+          const currentTime = player.getCurrentTime();
+          const duration = player.getDuration();
+          if (duration > 0) {
+            seekBar.value = (currentTime / duration) * 100;
+          }
+        }
+      }, 500);
+    }
+
+    // Seek / Geser Durasi
+    seekBar.addEventListener('input', () => {
+      if (player && player.getDuration) {
+        const duration = player.getDuration();
+        const newTime = (seekBar.value / 100) * duration;
+        player.seekTo(newTime, true);
+      }
+    });
+
+    // Skip Back 5 Detik
+    prevBtn.addEventListener('click', () => {
+      if (player && player.getCurrentTime) {
+        const currentTime = player.getCurrentTime();
+        player.seekTo(Math.max(0, currentTime - 5), true);
+      }
+    });
+
+    // Skip Forward 5 Detik
+    nextBtn.addEventListener('click', () => {
+      if (player && player.getCurrentTime) {
+        const currentTime = player.getCurrentTime();
+        player.seekTo(currentTime + 5, true);
+      }
+    });
+  </script>
 </body>
-
 </html>
