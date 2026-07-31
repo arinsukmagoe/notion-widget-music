@@ -1,66 +1,43 @@
 body{
     margin:0;
-    background:transparent;
-
+    height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-
-    height:100vh;
-
+    background:transparent;
     font-family:Arial, sans-serif;
 }
 
 .card{
-
     width:320px;
-
     background:white;
-
     border-radius:20px;
-
-    padding:25px;
-
+    padding:24px;
     text-align:center;
-
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
 }
 
 h2{
-
     margin:0;
-
-    color:#56735a;
+    color:#5b7c5d;
 }
 
 h3{
-
-    margin-top:15px;
-    margin-bottom:5px;
+    margin:18px 0 4px;
 }
 
 p{
-
-    color:gray;
-
-    margin-top:0;
+    margin:0;
+    color:#777;
 }
 
 button{
-
     margin-top:20px;
-
     border:none;
-
-    padding:12px 25px;
-
     border-radius:50px;
-
-    cursor:pointer;
-
-    background:#6f9474;
-
+    padding:12px 24px;
+    background:#6b8e6e;
     color:white;
-
+    cursor:pointer;
     font-size:16px;
 }
